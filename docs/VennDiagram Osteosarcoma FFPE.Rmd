@@ -1,0 +1,90 @@
+---
+title: "Venn Diagram, Osteosarcoma FFPE Pathwest"
+author: "Sulev Koks"
+date: "09/01/2024"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+My samples have these numbers of DEGs:
+
+FRESH = sample(genes,5366), 
+FFPEVNEE = sample(genes,17562), 
+FFPEPW1 = sample(genes,1701),
+FFPEPW2 = sample(genes,10100)
+
+```{r}
+library(VennDiagram)
+library(ggplot2)
+myCol <- c("#F8766D", "#00BFC4", "#7CAE00", "#EFC000FF")
+myFill <- c(alpha("#F8766D",0.3), alpha("#00BFC4",0.3), alpha("#7CAE00",0.3), alpha("#EFC000FF",0.3))
+```
+
+######
+Here we will use `nVennR` package
+Original list of genes is needed as the package will perform a comparison of the gene symbols.
+
+```{r}
+#devtools::install_github("vqf/nVennR")
+```
+```{r}
+#install.packages("grImport2")
+```
+
+```{r}
+library(nVennR)
+library(grImport2)
+```
+
+My samples are in four files
+
+```{r}
+load("~/Documents/R_Data/OSPathWest/fresh.RData")
+load("~/Documents/R_Data/OSPathWest/ffpevnee.RData")
+load("~/Documents/R_Data/OSPathWest/ffpePW1.RData")
+load("~/Documents/R_Data/OSPathWest/ffpePW2.RData")
+```
+
+This helps to get one version of the Venn diagram.
+
+```{r}
+myV <- plotVenn(list(Fresh=fresh, FFPEVNEE=ffpevnee, FFPEPW1=ffpePW1, FFPEPW2=ffpePW2), sNames=c("Fresh", "FFPEvnee", "FFPEpw1", "FFPEpw2"))
+```
+
+Make a .svg file.
+
+```{r}
+myV <- plotVenn(nVennObj = myV,  outFile="VennOS.svg")
+```
+
+```{r}
+dev.off()
+```
+
+Here we try `VennDiagram` package
+
+```{r}
+lists <- list(fresh, ffpevnee, ffpePW1, ffpePW2)
+overlap <- calculate.overlap(lists)
+overlap_values <- lapply(overlap, function(x) length(x))
+```
+
+This is a very nice VENN diagram based on the four lists of OS FFPE genes.
+
+```{r}
+draw.quad.venn(area.vector = c(overlap_values$a1, overlap_values$a2, overlap_values$a3, overlap_values$a4, overlap_values$a5, overlap_values$a6, overlap_values$a7, overlap_values$a8, overlap_values$a9, overlap_values$a10, overlap_values$a11, overlap_values$a12, overlap_values$a13, overlap_values$a14, overlap_values$a15), direct.area = T, category = c("FRESH","FFPEVNEE", "FFPEPW1", "FFPEPW2"), 
+    scaled=TRUE, main="Osteosarcoma meta-analysis",
+    lwd = 2, col = myCol, cex = 1.5,fontfamily = "sans",
+    cat.cex = 1.5, cat.fontface = "bold", 
+    cat.default.pos = "outer", cat.fontfamily = "sans",
+    fill = myFill)
+```
+
+```{r}
+dev.off()
+```
+
+```{r}
+sessionInfo()
+```

@@ -1,0 +1,95 @@
+---
+title: "OS FFPE pathwest Salmon data"
+author: "Sulev Koks"
+date: "04/01/2024"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load libraries and data file
+
+```{r}
+library(tximeta)
+library(DESeq2)
+```
+
+```{r}
+load("DDSgseFFPEOSsalmon.RData")
+```
+
+```{r}
+dds <- DESeq(ddsgse)
+```
+
+```{r}
+(res <- results(dds,  alpha=0.05))
+summary(res)
+resOrdered <- res[order(res$padj),]
+head(resOrdered)
+```
+
+Very good and easy annotation with `AnnotationDbi`
+
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+```
+
+This is the organism annotation package ("org") for *Homo sapiens* ("Hs"), organised as an *AnnotationDbi* database package ("db"), using Entrez Gene IDs ("eg") as primary key.
+To get a list of all available key types, use:
+
+```{r adjust rownames}
+row.names(res)[1:10]
+res$TX<-row.names(res)
+rownames(res)<- gsub("\\..*", "", res$TX)
+rownames(res)[1:10]
+columns(org.Hs.eg.db)
+```
+
+We can use the *mapIds* function to add invidual columns to our results table. To add the gene symbol and Entrez ID, we call *mapIds* twice:
+
+```{r annot}
+res$genename <- mapIds(org.Hs.eg.db, 
+                     keys=row.names(res), 
+                     column="GENENAME", 
+                     keytype="ENSEMBL",
+                     multiVals="first")
+res$symbol <- mapIds(org.Hs.eg.db, 
+                     keys=row.names(res), 
+                     column="SYMBOL", 
+                     keytype="ENSEMBL",
+                     multiVals="first")
+res$entrez <- mapIds(org.Hs.eg.db, 
+                     keys=row.names(res), 
+                     column="ENTREZID", 
+                     keytype="ENSEMBL",
+                     multiVals="first")
+res$omim <- mapIds(org.Hs.eg.db, 
+                     keys=row.names(res), 
+                     column="OMIM", 
+                     keytype="ENSEMBL",
+                     multiVals="first")
+res$map <- mapIds(org.Hs.eg.db, 
+                     keys=row.names(res), 
+                     column="MAP", 
+                     keytype="ENSEMBL",
+                     multiVals="first")
+```
+
+Now the results have the desired external gene ids.
+
+```{r}
+resOrdered <- res[order(res$padj),]
+head(resOrdered)
+```
+
+```{r}
+sessionInfo()
+```
+
+
