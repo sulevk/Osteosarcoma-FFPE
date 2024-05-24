@@ -11,7 +11,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Load libraries and data file
+Load libraries and data file.
 
 ```{r}
 library(tximeta)
